@@ -1,11 +1,17 @@
 import 'package:adaptative_layout_xp/person.dart';
+import 'package:adaptative_layout_xp/personModel.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-
-
-
-  runApp(MyApp());
+  runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (context) => PersonModel())
+        ],
+          child: MyApp()
+      )
+  );
 }
 
 
@@ -39,10 +45,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
-
         title: Text(widget.title),
       ),
       body: LayoutBuilder(
@@ -69,8 +73,6 @@ class WideLayout extends StatefulWidget {
 
 class _WideLayoutState extends State<WideLayout> {
 
-  Person _person;
-
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -79,11 +81,22 @@ class _WideLayoutState extends State<WideLayout> {
             child: Padding(
               padding: const EdgeInsets.all(12.0),
               child: PeopleList(
-                onPersonTap: (person) => setState(() => _person = person),),
+                onPersonTap: (person) => setState(() {
+                    PersonModel personModel = Provider.of<PersonModel>(context, listen: false);
+                    personModel.currentPerson = person;
+                })
+                ),
             ),
             width: 250,
         ),
-        Expanded(child: _person == null ? Placeholder() : PersonDetail(_person), flex: 3),
+        Expanded(
+            child: Consumer<PersonModel>(builder: (context, personModel, child) {
+                  if(personModel.currentPerson != null) {
+                    return PersonDetail(personModel.currentPerson);
+                  } else {
+                    return Placeholder();
+                  }
+    }), flex: 3),
       ],
     );
 
@@ -97,8 +110,8 @@ class NarrowLayout extends StatelessWidget {
     return Center(
       child: PeopleList(
         onPersonTap: (person) => Navigator.of(context).push(MaterialPageRoute(builder: (context) => Scaffold(
-      appBar: AppBar(),
-      body: PersonDetail(person),
+        appBar: AppBar(),
+        body: PersonDetail(person),
     ),
     ),
       )
@@ -140,8 +153,6 @@ class PersonDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         if (constraints.maxHeight > 300) {
